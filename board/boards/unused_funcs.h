@@ -29,3 +29,7 @@ void unused_set_siren(bool enabled) {
 uint32_t unused_read_current(void) {
   return 0U;
 }
+
+bool unused_read_som_gpio(void) {
+  return false;
+}
