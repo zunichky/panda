@@ -1,8 +1,8 @@
 void clock_init(void) {
   //Set power mode to direct SMPS power supply(depends on the board layout)
   register_set(&(PWR->CR3), PWR_CR3_SMPSEN, 0xFU); // powered only by SMPS
-  //Set VOS level (VOS3 to 170Mhz, VOS2 to 300Mhz, VOS1 to 400Mhz, VOS0 to 550Mhz)
-  register_set(&(PWR->D3CR), PWR_D3CR_VOS_1 | PWR_D3CR_VOS_0, 0xC000U); //VOS1, needed for 80Mhz CAN FD
+  //Set VOS level to VOS0. (VOS3 to 170Mhz, VOS2 to 300Mhz, VOS1 to 400Mhz, VOS0 to 550Mhz)
+  register_set(&(PWR->D3CR), PWR_D3CR_VOS_1, 0xC000U); //VOS2
   while ((PWR->CSR1 & PWR_CSR1_ACTVOSRDY) == 0);
   while ((PWR->CSR1 & PWR_CSR1_ACTVOS) != (PWR->D3CR & PWR_D3CR_VOS)); // check that VOS level was actually set
   // Configure Flash ACR register LATENCY and WRHIGHFREQ (VOS0 range!)
@@ -14,11 +14,11 @@ void clock_init(void) {
   register_set_bits(&(RCC->CR), RCC_CR_HSI48ON);
   while ((RCC->CR & RCC_CR_HSI48RDY) == 0);
   // Specify the frequency source for PLL1, divider for DIVM1, DIVM2, DIVM3 : HSE, 5, 5, 5
-  register_set(&(RCC->PLLCKSELR), RCC_PLLCKSELR_PLLSRC_HSE | RCC_PLLCKSELR_DIVM1_0 | RCC_PLLCKSELR_DIVM1_2 | RCC_PLLCKSELR_DIVM2_0 | RCC_PLLCKSELR_DIVM2_2 | RCC_PLLCKSELR_DIVM3_0 | RCC_PLLCKSELR_DIVM3_2, 0x3F3F3F3U);
+  register_set(&(RCC->PLLCKSELR), RCC_PLLCKSELR_PLLSRC_HSE | RCC_PLLCKSELR_DIVM1_0 | RCC_PLLCKSELR_DIVM1_2 | RCC_PLLCKSELR_DIVM2_0 | RCC_PLLCKSELR_DIVM2_2, 0x3F3F3U);
 
   // *** PLL1 start ***
   // Specify multiplier N and dividers P, Q, R for PLL1 : 48, 1, 3, 2 (clock 240Mhz, PLL1Q 80Mhz for CAN FD)
-  register_set(&(RCC->PLL1DIVR), 0x102002FU, 0x7F7FFFFFU);
+  register_set(&(RCC->PLL1DIVR), 0x104002FU, 0x7F7FFFFFU);
   // Specify the input and output frequency ranges, enable dividers for PLL1
   register_set(&(RCC->PLLCFGR), RCC_PLLCFGR_PLL1RGE_2 | RCC_PLLCFGR_DIVP1EN | RCC_PLLCFGR_DIVQ1EN | RCC_PLLCFGR_DIVR1EN, 0x7000CU);
   // Enable PLL1
