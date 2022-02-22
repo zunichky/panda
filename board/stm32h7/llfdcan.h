@@ -89,6 +89,9 @@ bool llcan_set_speed(FDCAN_GlobalTypeDef *CANx, uint32_t speed, uint32_t data_sp
     CANx->CCCR &= ~(FDCAN_CCCR_MON);
     CANx->CCCR &= ~(FDCAN_CCCR_ASM);
 
+    // Enable ASM restricted operation
+    //CANx->CCCR |= FDCAN_CCCR_ASM;
+
     // Set the nominal bit timing register
     CANx->NBTP = ((CAN_SYNC_JW-1U)<<FDCAN_NBTP_NSJW_Pos) | ((CAN_PHASE_SEG1-1U)<<FDCAN_NBTP_NTSEG1_Pos) | ((CAN_PHASE_SEG2-1U)<<FDCAN_NBTP_NTSEG2_Pos) | ((can_speed_to_prescaler(speed)-1U)<<FDCAN_NBTP_NBRP_Pos);
     // Set the data bit timing register

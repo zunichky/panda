@@ -162,6 +162,7 @@ class Panda(object):
   CAN_PACKET_VERSION = 2
   HEALTH_PACKET_VERSION = 3
   HEALTH_STRUCT = struct.Struct("<IIIIIIIIBBBBBBBHBBBHI")
+  CAN_HEALTH_STRUCT = struct.Struct("<BBBBBBBBBBBBBB")
 
   F2_DEVICES = (HW_TYPE_PEDAL, )
   F4_DEVICES = (HW_TYPE_WHITE_PANDA, HW_TYPE_GREY_PANDA, HW_TYPE_BLACK_PANDA, HW_TYPE_UNO, HW_TYPE_DOS)
@@ -377,6 +378,42 @@ class Panda(object):
       "heartbeat_lost": a[18],
       "unsafe_mode": a[19],
       "blocked_msg_cnt": a[20],
+    }
+
+  def can_health(self, bus):
+    err_code = {
+      0: "No error",
+      1: "Stuff error",
+      2: "Form error",
+      3: "AckError",
+      4: "Bit1Error",
+      5: "Bit0Error",
+      6: "CRCError",
+      7: "NoChange",
+    }
+    act_code = {
+      0: "Syncronizing",
+      1: "Idle",
+      2: "Receiver",
+      3: "Transmitter",
+    }
+    dat = self._handle.controlRead(Panda.REQUEST_IN, 0xfb, bus, 0, self.CAN_HEALTH_STRUCT.size)
+    a = self.CAN_HEALTH_STRUCT.unpack(dat)
+    return {
+      "ECR_CEL": a[0],
+      "ECR_RP": a[1],
+      "ECR_REC": a[2],
+      "ECR_TEC": a[3],
+      "PSR_PXE": "Protocol exception" if a[4] else "--",
+      "PSR_REDL": a[5],
+      "PSR_RBRS": a[6],
+      "PSR_RESI": a[7],
+      "PSR_DLEC": err_code[a[8]],
+      "PSR_BO": "Bus Off" if a[9] else "--",
+      "PSR_EW": "Error_Warning" if a[10] else "--",
+      "PSR_EP": "Error_Passive" if a[11] else "Error_Active",
+      "PSR_ACT": a[12],
+      "PSR_LEC": err_code[a[13]],
     }
 
   # ******************* control *******************

@@ -1,5 +1,6 @@
 #include "usb_protocol.h"
 #include "health.h"
+#include "can_health.h"
 
 extern int _app_start[0xc000]; // Only first 3 sectors of size 0x4000 are used
 
@@ -39,7 +40,34 @@ int get_health_pkt(void *dat) {
 
   return sizeof(*health);
 }
+#ifdef STM32H7
+int get_can_health_pkt(void *dat, uint8_t can_number) {
+  COMPILE_TIME_ASSERT(sizeof(struct can_health_t) <= USBPACKET_MAX_SIZE);
+  struct can_health_t * can_health = (struct can_health_t*)dat;
 
+  FDCAN_GlobalTypeDef *CANx = CANIF_FROM_CAN_NUM(can_number);
+
+  uint32_t can_ecr = CANx->ECR;
+  uint32_t can_psr = CANx->PSR;
+
+  can_health->ecr_cel_pkt = (uint8_t)(can_ecr & FDCAN_ECR_CEL);
+  can_health->ecr_rp_pkt = (uint8_t)(can_ecr & FDCAN_ECR_RP);
+  can_health->ecr_rec_pkt = (uint8_t)(can_ecr & FDCAN_ECR_REC);
+  can_health->ecr_tec_pkt = (uint8_t)(can_ecr & FDCAN_ECR_TEC);
+  can_health->psr_pxe_pkt = (uint8_t)(can_psr & FDCAN_PSR_PXE);
+  can_health->psr_redl_pkt = (uint8_t)(can_psr & FDCAN_PSR_REDL);
+  can_health->psr_rbrs_pkt = (uint8_t)(can_psr & FDCAN_PSR_RBRS);
+  can_health->psr_resi_pkt = (uint8_t)(can_psr & FDCAN_PSR_RESI);
+  can_health->psr_dlec_pkt = (uint8_t)(can_psr & FDCAN_PSR_DLEC);
+  can_health->psr_bo_pkt = (uint8_t)(can_psr & FDCAN_PSR_BO);
+  can_health->psr_ew_pkt = (uint8_t)(can_psr & FDCAN_PSR_EW);
+  can_health->psr_ep_pkt = (uint8_t)(can_psr & FDCAN_PSR_EP);
+  can_health->psr_act_pkt = (uint8_t)(can_psr & FDCAN_PSR_ACT);
+  can_health->psr_lec_pkt = (uint8_t)(can_psr & FDCAN_PSR_LEC);
+
+  return sizeof(*can_health);
+}
+#endif
 int get_rtc_pkt(void *dat) {
   timestamp_t t = rtc_get_time();
   (void)memcpy(dat, &t, sizeof(t));
@@ -456,6 +484,13 @@ int usb_cb_control_msg(USB_Setup_TypeDef *setup, uint8_t *resp) {
         resp_len = 2;
       }
       break;
+#ifdef STM32H7
+    case 0xfb:
+      if (setup->b.wValue.w < CAN_CNT) {
+        resp_len = get_can_health_pkt(resp, setup->b.wValue.w);
+      }
+      break;
+#endif
     default:
       puts("NO HANDLER ");
       puth(setup->b.bRequest);
