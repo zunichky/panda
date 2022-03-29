@@ -82,12 +82,12 @@ def test_reliability(p):
 
   # 100 loops
   for i in range(LOOP_COUNT):
-    st = time.time()
+    st = time.monotonic()
 
     p.can_send_many(ts)
 
     r = []
-    while len(r) < 200 and (time.time() - st) < 0.5:
+    while len(r) < 200 and (time.monotonic() - st) < 0.5:
       r.extend(p.can_recv())
 
     sent_echo = [x for x in r if x[3] == 0x80]
@@ -98,7 +98,7 @@ def test_reliability(p):
     assert_equal(len(r), 200)
 
     # take sub 20ms
-    et = (time.time() - st) * 1000.0
+    et = (time.monotonic() - st) * 1000.0
     assert_less(et, 20)
 
     sys.stdout.write("P")
