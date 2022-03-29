@@ -8,7 +8,6 @@ from parameterized import parameterized, param
 
 from panda import Panda
 from panda_jungle import PandaJungle  # pylint: disable=import-error
-from .timeout import run_with_timeout
 
 SPEED_NORMAL = 500
 SPEED_GMLAN = 33.3
@@ -186,18 +185,15 @@ def panda_connect_and_init(fn=None, clear_can=True):
       panda.set_power_save(False)
 
     try:
-      run_with_timeout(TIMEOUT, fn, *pandas, **kwargs)
+      fn(*pandas, *kwargs)
 
       # Check if the pandas did not throw any faults while running test
       for panda in pandas:
         panda.reconnect()
         assert panda.health()['fault_status'] == 0
-    except Exception as e:
-      raise e
     finally:
-      # Close all connections
-      for panda in pandas:
-        panda.close()
+      for p in pandas:
+        p.close()
   return wrapper
 
 def clear_can_buffers(panda):
