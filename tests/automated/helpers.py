@@ -1,13 +1,13 @@
 import os
 import time
 import random
-import _thread
 import faulthandler
 from functools import wraps, partial
-from panda import Panda
-from panda_jungle import PandaJungle  # pylint: disable=import-error
 from nose.tools import assert_equal
 from parameterized import parameterized, param
+
+from panda import Panda
+from panda_jungle import PandaJungle  # pylint: disable=import-error
 from .timeout import run_with_timeout
 
 SPEED_NORMAL = 500
@@ -148,16 +148,6 @@ def panda_type_to_serial(fn):
         raise IOError("No unused panda found for type: {}".format(p_type))
     return fn(serials, **kwargs)
   return wrapper
-
-def start_heartbeat_thread(p):
-  def heartbeat_thread(p):
-    while True:
-      try:
-        p.send_heartbeat()
-        time.sleep(1)
-      except:
-        break
-  _thread.start_new_thread(heartbeat_thread, (p,))
 
 def panda_connect_and_init(fn=None, clear_can=True):
   if not fn:
