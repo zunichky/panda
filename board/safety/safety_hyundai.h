@@ -185,14 +185,14 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
         cruise_button_prev = button;
       }
     } else {
-      // enter controls on rising edge of ACC, exit controls on ACC off
+      // enter/exit controls on rising/falling edge of ACC
       if (addr == 1057) {
         // 2 bits: 13-14
         int cruise_engaged = (GET_BYTES_04(to_push) >> 13) & 0x3U;
         if (cruise_engaged && !cruise_engaged_prev) {
           controls_allowed = 1;
         }
-        if (!cruise_engaged) {
+        if (!cruise_engaged && cruise_engaged_prev) {
           controls_allowed = 0;
         }
         cruise_engaged_prev = cruise_engaged;
