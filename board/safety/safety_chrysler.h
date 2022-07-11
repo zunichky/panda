@@ -1,14 +1,11 @@
 const int CHRYSLER_MAX_STEER = 261;
 const int CHRYSLER_MAX_RT_DELTA = 112;         // max delta torque allowed for real time checks
 const uint32_t CHRYSLER_RT_INTERVAL = 250000;  // 250ms between real time checks
-const int CHRYSLER_MAX_RATE_UP = 3;
-const int CHRYSLER_MAX_RATE_DOWN = 3;
+const int CHRYSLER_MAX_RATE_UP = 6;
+const int CHRYSLER_MAX_RATE_DOWN = 6;
 const int CHRYSLER_MAX_TORQUE_ERROR = 80;      // max torque cmd in excess of torque motor
 const int CHRYSLER_STANDSTILL_THRSLD = 10;     // about 1m/s
 const int CHRYSLER_RAM_STANDSTILL_THRSLD = 3;  // about 1m/s changed from wheel rpm to km/h
-
-const int CHRYSLER_RAM_MAX_RATE_UP = 6;
-const int CHRYSLER_RAM_MAX_RATE_DOWN = 6;
 
 // CAN messages for Chrysler/Jeep platforms
 #define EPS_2                      544  // EPS driver input torque
@@ -199,10 +196,8 @@ static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
       violation |= max_limit_check(desired_torque, CHRYSLER_MAX_STEER, -CHRYSLER_MAX_STEER);
 
       // *** torque rate limit check ***
-      const int max_rate_up = chrysler_ram ? CHRYSLER_RAM_MAX_RATE_UP : CHRYSLER_MAX_RATE_UP;
-      const int max_rate_down = chrysler_ram ? CHRYSLER_RAM_MAX_RATE_DOWN : CHRYSLER_MAX_RATE_DOWN;
       violation |= dist_to_meas_check(desired_torque, desired_torque_last,
-        &torque_meas, max_rate_up, max_rate_down, CHRYSLER_MAX_TORQUE_ERROR);
+        &torque_meas, CHRYSLER_MAX_RATE_UP, CHRYSLER_MAX_RATE_DOWN, CHRYSLER_MAX_TORQUE_ERROR);
 
       // used next time
       desired_torque_last = desired_torque;
